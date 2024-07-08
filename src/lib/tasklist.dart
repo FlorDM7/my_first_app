@@ -4,7 +4,7 @@ import 'task.dart';
 A class representing a list of tasks.
 */
 class Tasklist {
-  List tasks = [];
+  List<Task> tasks = [];
 
   // empty constructor
   Tasklist();
@@ -21,8 +21,8 @@ class Tasklist {
     return false;
   }
 
-  Task getTaskAt(int n) {
-    return tasks[n];
+  Task getTaskAt(int index) {
+    return tasks[index];
   }
 
   int getIndexOf(Task task) {
@@ -35,6 +35,14 @@ class Tasklist {
 
   bool isElementOfList(Task task) {
     return getIndexOf(task) != -1;
+  }
+
+  int length() {
+    return tasks.length;
+  }
+
+  bool isEmpty() {
+    return tasks.isEmpty;
   }
 
 }

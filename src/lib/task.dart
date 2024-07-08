@@ -2,41 +2,32 @@
 A class representing tasks.
 */
 class Task {
-  String title = "";
-  String discription = "";
-  DateTime deadline = DateTime.now();
+  String title;
+  String description;
+  DateTime? deadline;
 
   /*
   CONSTRUCTORS
   */
 
   // Full constructor
-  Task(String title, String discription, DateTime deadline) {
-    setTitle(title);
-    setDiscription(discription);
-    setDeadline(deadline);
-  }
+  Task(this.title, this.description, this.deadline);
 
   // Constructor without date
-  Task.noDate(String title, String discription) {
-    Task(title, discription, DateTime.now().add(const Duration(days: 2)));
-  }
-
-  // Constructor only with title
-  Task.fromTitle(String title) {
-    Task(title, "", DateTime.now().add(const Duration(days: 2)));
+  Task.noDate(this.title, this.description) {
+    deadline = null;
   }
 
   /*
   SETTERS
   */  
 
-  void setTitle(String title){
+  void setTitle(String title) {
     this.title = title;
   }
 
-  void setDiscription(String discription){
-    this.discription = discription;
+  void setDescription(String description) {
+    this.description = description;
   }
 
   void setDeadline(DateTime deadline){
@@ -48,19 +39,18 @@ class Task {
   */
 
   String getTitle(){
-    return title;
+    return title; 
   }
 
-  String getDiscription(){
-    return discription;
+  String getDescription(){
+    return description;
   }
 
-  DateTime getDeadline(){
+  DateTime? getDeadline(){
     return deadline;
   }
 
-  String getDeadlineToString(){
-    String day = getDeadline().day.toString();
-    return day; 
+  String? getDeadlineToString(){
+    return getDeadline()?.day.toString();
   }
 }
