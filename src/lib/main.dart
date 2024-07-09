@@ -42,14 +42,65 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
   Tasklist tasklist = Tasklist(); // create new tasklist object
 
-  void _incrementCounter() {
+  Future<void> _showAddTaskDialog() async {
+    String _newTaskTitle = "Unnamed task";
+    String _newTaskDescription = "You didn't enter anything";
+
+    return showDialog(
+      context: context,
+      barrierDismissible: false, // user must tap button to dismiss
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Enter a new task"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                TextField(
+                  decoration: const InputDecoration(
+                    border: UnderlineInputBorder(),
+                    label: Text("Enter a title"),
+                  ),
+                  onChanged: (value) {
+                    _newTaskTitle = value;
+                  },
+                ),
+                TextField(
+                  decoration: const InputDecoration(
+                    border: UnderlineInputBorder(),
+                    label: Text("Enter a description"),
+                  ),
+                  onChanged: (value) {
+                    _newTaskDescription = value;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge,),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Cancel")),
+            TextButton(
+              style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge,),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _addTask(_newTaskTitle, _newTaskDescription);
+              },
+              child: const Text("Add")),
+          ],
+        );
+      },
+    );
+  }
+
+  void _addTask(String title, String description) {
     setState(() {
-      _counter++;
-      Task new_task = Task.noDate("Task $_counter", "This is task $_counter !");
-      tasklist.addTask(new_task);
+      tasklist.addTask(Task.noDate(title, description));
     });
   }
 
@@ -61,22 +112,23 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: tasklist.isEmpty() 
-        ? const Center(child: Text('There are no tasks. Create one!'))
-        : ListView.builder(
-          itemCount: tasklist.length(),
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(tasklist.getTaskAt(index).getTitle()),
-              subtitle: Text(tasklist.getTaskAt(index).getDescription()),
-          );
-        },
-      ),
+      body: tasklist.isEmpty()
+          ? const Center(child: Text('There are no tasks. Create one!'))
+          : ListView.builder(
+              itemCount: tasklist.length(),
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(tasklist.getTaskAt(index).getTitle()),
+                  subtitle: Text(tasklist.getTaskAt(index).getDescription()),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _showAddTaskDialog,
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
