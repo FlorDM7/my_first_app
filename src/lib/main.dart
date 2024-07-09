@@ -44,8 +44,9 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Tasklist tasklist = Tasklist(); // create new tasklist object
 
+  // method that makes a pop up for adding a new task
   Future<void> _showAddTaskDialog() async {
-    String _newTaskTitle = "Unnamed task";
+    String _newTaskTitle = "Unnamed task"; // variables for the new task
     String _newTaskDescription = "You didn't enter anything";
 
     return showDialog(
@@ -59,37 +60,37 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 TextField(
                   decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
+                    border: UnderlineInputBorder(), // place to enter text
                     label: Text("Enter a title"),
                   ),
                   onChanged: (value) {
-                    _newTaskTitle = value;
+                    _newTaskTitle = value; // change the local variable
                   },
                 ),
                 TextField(
                   decoration: const InputDecoration(
-                    border: UnderlineInputBorder(),
+                    border: UnderlineInputBorder(), // place to enter text
                     label: Text("Enter a description"),
                   ),
                   onChanged: (value) {
-                    _newTaskDescription = value;
+                    _newTaskDescription = value; // change the local variable
                   },
                 ),
               ],
             ),
           ),
-          actions: <Widget>[
+          actions: <Widget>[ // two buttons at the bottom of the widget
             TextButton(
               style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge,),
               onPressed: () {
-                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // when button is pressed return to home screen
               },
               child: const Text("Cancel")),
             TextButton(
               style: TextButton.styleFrom(textStyle: Theme.of(context).textTheme.labelLarge,),
               onPressed: () {
                 Navigator.of(context).pop();
-                _addTask(_newTaskTitle, _newTaskDescription);
+                _addTask(_newTaskTitle, _newTaskDescription); // press add, call addTask method
               },
               child: const Text("Add")),
           ],
