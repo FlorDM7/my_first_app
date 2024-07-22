@@ -45,4 +45,8 @@ class Tasklist {
     return tasks.isEmpty;
   }
 
+  void sortByDate() {
+    // TODO
+  }
+
 }

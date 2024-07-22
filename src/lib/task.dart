@@ -4,7 +4,7 @@ A class representing tasks.
 class Task {
   String title;
   String description;
-  DateTime? deadline;
+  DateTime deadline = DateTime.now();
 
   /*
   CONSTRUCTORS
@@ -14,9 +14,7 @@ class Task {
   Task(this.title, this.description, this.deadline);
 
   // Constructor without date
-  Task.noDate(this.title, this.description) {
-    deadline = null;
-  }
+  Task.noDate(this.title, this.description);
 
   /*
   SETTERS

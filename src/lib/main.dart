@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'tasklist.dart';
 import 'task.dart';
 
@@ -48,6 +49,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _showAddTaskDialog() async {
     String _newTaskTitle = "Untitled task"; // variables for the new task
     String _newTaskDescription = "";
+    int _deadlineYear = DateTime.now().year;
+    int _deadlineMonth = DateTime.now().month;
+    int _deadlineDay = DateTime.now().day;
 
     return showDialog(
       context: context,
@@ -76,6 +80,36 @@ class _MyHomePageState extends State<MyHomePage> {
                     _newTaskDescription = value; // change the local variable
                   },
                 ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a year for the deadline")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineYear = int.parse(value); // change the local variable
+                  },  
+                ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a month for the deadline")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineMonth = int.parse(value); // change the local variable
+                  },  
+                ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a day for the deadline")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineDay = int.parse(value); // change the local variable
+                  },  
+                )
               ],
             ),
           ),
@@ -99,7 +133,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   // press add, call addTask method
-                  _addTask(_newTaskTitle, _newTaskDescription);
+                  _addTask(_newTaskTitle, _newTaskDescription, _deadlineYear, _deadlineMonth, _deadlineDay);
                 },
                 child: const Text("Add")),
           ],
@@ -110,23 +144,26 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // add a new task
   // by changing the state
-  void _addTask(String title, String description) {
+  void _addTask(String title, String description, int year, int month, int day) {
     setState(() {
-      tasklist.addTask(Task.noDate(title, description));
-    });
+      tasklist.addTask(Task(title, description, DateTime.utc(year, month, day)));
+  });
   }
 
 
   // method that makes a pop up widget for an existing task, 
   // with the option to edit or complete/delete the task
   Future<void> _showInfoTaskDialog(Task currentTask) async {
+    int day = currentTask.deadline.day;
+    int month = currentTask.deadline.month;
+    int year = currentTask.deadline.year;
     return showDialog(
         context: context,
         barrierDismissible: false,
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text(currentTask.getTitle()),
-            content: Text(currentTask.getDescription()),
+            content: Text("Deadline: ${currentTask.getDescription()}\n${day.toString()}/${month.toString()}/${year.toString()}"),
             actions: <Widget>[
               // return button
               TextButton(
@@ -249,6 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  
   // This build method is rerun every time setState is called.
   @override
   Widget build(BuildContext context) {
@@ -257,7 +295,7 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      // List framework
+      // Tasklist framework
       body: tasklist.isEmpty()
           ? const Center(child: Text('There are no tasks. Create one!'))
           : ListView.builder(
