@@ -46,7 +46,7 @@ class Tasklist {
   }
 
   void sortByDate() {
-    // TODO
+    tasks.sort((a, b) => a.getDeadline().compareTo(b.getDeadline()));
   }
 
 }

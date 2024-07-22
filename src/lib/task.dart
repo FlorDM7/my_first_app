@@ -44,11 +44,11 @@ class Task {
     return description;
   }
 
-  DateTime? getDeadline(){
+  DateTime getDeadline(){
     return deadline;
   }
 
   String? getDeadlineToString(){
-    return getDeadline()?.day.toString();
+    return getDeadline().day.toString();
   }
 }

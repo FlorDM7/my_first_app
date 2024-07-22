@@ -147,6 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _addTask(String title, String description, int year, int month, int day) {
     setState(() {
       tasklist.addTask(Task(title, description, DateTime.utc(year, month, day)));
+      tasklist.sortByDate();
   });
   }
 
@@ -208,6 +209,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       tasklist.removeTask(task);
       // TODO add to the archive
+      tasklist.sortByDate();
     });
   }
 
@@ -217,6 +219,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Future<void> _showEditTaskDialog(Task currentTask) async {
     String _newTaskTitle = currentTask.getTitle();
     String _newTaskDescription = currentTask.getDescription();
+    int _deadlineYear = currentTask.getDeadline().year;
+    int _deadlineMonth = currentTask.getDeadline().month;
+    int _deadlineDay = currentTask.getDeadline().day;
 
     return showDialog(
       context: context,
@@ -245,6 +250,36 @@ class _MyHomePageState extends State<MyHomePage> {
                     _newTaskDescription = value; // change the local variable
                   },
                 ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a new year for the deadline (optional)")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineYear = int.parse(value); // change the local variable
+                  },  
+                ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a new month for the deadline (optional)")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineMonth = int.parse(value); // change the local variable
+                  },  
+                ),
+                TextField(
+                  decoration: const InputDecoration(label: Text("Enter a new day for the deadline (optional)")),
+                  keyboardType: TextInputType.datetime,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                  onChanged: (value) {
+                    _deadlineDay = int.parse(value); // change the local variable
+                  },  
+                )
               ],
             ),
           ),
@@ -268,7 +303,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   // press confirm, call editTask method
-                  _editTask(currentTask, _newTaskTitle, _newTaskDescription);
+                  _editTask(currentTask, _newTaskTitle, _newTaskDescription, _deadlineYear, _deadlineMonth, _deadlineDay);
                 },
                 child: const Text("Confirm")),
           ],
@@ -279,10 +314,12 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // edit an existing task
   // by changing the state
-  void _editTask(Task task, String title, String description) {
+  void _editTask(Task task, String title, String description, int year, int month, int day) {
     setState(() {
       task.setTitle(title);
       task.setDescription(description);
+      task.setDeadline(DateTime.utc(year, month, day));
+      tasklist.sortByDate();
     });
   }
 
