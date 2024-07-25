@@ -36,6 +36,76 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Tasklist tasklist = Tasklist(); // create new tasklist object
   Tasklist archive = Tasklist();
+  int _selectedIndex = 0; // keep track of the selected index
+
+  // manual list with the avaliable widgets
+  static const List<Widget> _widgetOptions = <Widget>[
+    Text("To-Do List"),
+    Text("Archived Tasks")
+  ];
+
+  // method to change to selected index and so to change to widget
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  // Build main task viewer
+  Widget _buildTaskListView() {
+    return tasklist.isEmpty()
+          ? const Center(child: Text('There are no tasks. Create one!'))
+          : ListView.builder(
+              itemCount: tasklist.length(),
+              itemBuilder: (context, index) {
+                Task currentTask = tasklist.getTaskAt(index);
+                return ListTile(
+                  tileColor: currentTask.getDeadlineColor(),
+                  title: Text(currentTask.getTitle()),
+                  subtitle: Text(currentTask.getDescription()),
+                  onTap: () {
+                    _showInfoTaskDialog(currentTask);
+                  },
+                );
+              },
+            );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: _selectedIndex == 0 
+          ? _buildTaskListView() // if index is zero build as normal
+          : ArchivePage(archive: archive), // if index is one build the archive
+      // Button to add new task (only show it on the main view)
+      floatingActionButton: _selectedIndex == 0 
+          ? FloatingActionButton(
+            onPressed: _showAddTaskDialog,
+            tooltip: 'Increment',
+            child: const Icon(Icons.add),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.task_alt),
+            label: "Tasks",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.archive),
+            label: "Archive"), 
+        ],
+        currentIndex: _selectedIndex,
+        selectedItemColor: Theme.of(context).primaryColor,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
 
   // method that makes a pop up widget for adding a new task
   Future<void> _showAddTaskDialog() async {
@@ -90,7 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                   onChanged: (value) {
                     _deadlineMonth = int.parse(value); // change the local variable
-                  },  
+                  },
                 ),
                 TextField(
                   decoration: const InputDecoration(label: Text("Enter a day for the deadline")),
@@ -100,7 +170,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                   onChanged: (value) {
                     _deadlineDay = int.parse(value); // change the local variable
-                  },  
+                  },
                 )
               ],
             ),
@@ -140,9 +210,8 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       tasklist.addTask(Task(title, description, DateTime.utc(year, month, day)));
       tasklist.sortByDate();
-  });
+    });
   }
-
 
   // method that makes a pop up widget for an existing task, 
   // with the option to edit or complete/delete the task
@@ -204,7 +273,6 @@ class _MyHomePageState extends State<MyHomePage> {
       archive.addTask(task);
     });
   }
-
 
   // method that makes a pop up widget for an exitsing task
   // with the option to edit the title and description
@@ -315,40 +383,64 @@ class _MyHomePageState extends State<MyHomePage> {
       tasklist.sortByDate();
     });
   }
+}
 
-  
-  // This build method is rerun every time setState is called.
+class ArchivePage extends StatelessWidget {
+  const ArchivePage({super.key, required this.archive});
+
+  final Tasklist archive;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: const Text("Archive of tasks"),
       ),
-      // Tasklist framework
-      body: tasklist.isEmpty()
-          ? const Center(child: Text('There are no tasks. Create one!'))
+      body: archive.isEmpty()
+          ? const Center(child: Text("You haven't completed a task yet!"))
           : ListView.builder(
-              itemCount: tasklist.length(),
+              itemCount: archive.length(),
               itemBuilder: (context, index) {
-                Task currentTask = tasklist.getTaskAt(index);
+                Task currentTask = archive.getTaskAt(index);
                 return ListTile(
                   tileColor: currentTask.getDeadlineColor(),
                   title: Text(currentTask.getTitle()),
                   subtitle: Text(currentTask.getDescription()),
                   onTap: () {
-                    _showInfoTaskDialog(currentTask);
+                    _showArchiveInfoDialog(context, currentTask);
                   },
                 );
-              },
-            ),
-      // Button to add new task
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+              }),
+    );
+  }
+
+  void _showArchiveInfoDialog(BuildContext context, Task task) async {
+    int day = task.deadline.day;
+    int month = task.deadline.month;
+    int year = task.deadline.year;
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+         return AlertDialog(
+            title: Text(task.getTitle()),
+            content: Text(
+                "${task.getDescription()}\nDeadline: ${day.toString()}/${month.toString()}/${year.toString()}"),
+            actions: <Widget>[
+              // return button
+              TextButton(
+                  style: TextButton.styleFrom(
+                    textStyle: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // when button is pressed return to home screen
+                  },
+                  child: const Text("Go back")),
+            ],
+          );
+      }
     );
   }
 }
