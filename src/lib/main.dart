@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'To-Do list',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
       home: const MyHomePage(title: 'To-Do List'),
@@ -27,15 +27,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -44,6 +35,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   Tasklist tasklist = Tasklist(); // create new tasklist object
+  Tasklist archive = Tasklist();
 
   // method that makes a pop up widget for adding a new task
   Future<void> _showAddTaskDialog() async {
@@ -164,7 +156,7 @@ class _MyHomePageState extends State<MyHomePage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text(currentTask.getTitle()),
-            content: Text("Deadline: ${currentTask.getDescription()}\n${day.toString()}/${month.toString()}/${year.toString()}"),
+            content: Text("${currentTask.getDescription()}\nDeadline: ${day.toString()}/${month.toString()}/${year.toString()}"),
             actions: <Widget>[
               // return button
               TextButton(
@@ -208,8 +200,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void _deleteTask(Task task) {
     setState(() {
       tasklist.removeTask(task);
-      // TODO add to the archive
       tasklist.sortByDate();
+      archive.addTask(task);
     });
   }
 
@@ -232,6 +224,7 @@ class _MyHomePageState extends State<MyHomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
+                Text("Current description: ${currentTask.getDescription()}\nCurrent deadline: ${currentTask.deadline.day.toString()}/${currentTask.deadline.month.toString()}/${currentTask.deadline.year.toString()}"),
                 TextField(
                   decoration: const InputDecoration(
                     border: UnderlineInputBorder(), // place to enter text
@@ -338,11 +331,13 @@ class _MyHomePageState extends State<MyHomePage> {
           : ListView.builder(
               itemCount: tasklist.length(),
               itemBuilder: (context, index) {
+                Task currentTask = tasklist.getTaskAt(index);
                 return ListTile(
-                  title: Text(tasklist.getTaskAt(index).getTitle()),
-                  subtitle: Text(tasklist.getTaskAt(index).getDescription()),
+                  tileColor: currentTask.getDeadlineColor(),
+                  title: Text(currentTask.getTitle()),
+                  subtitle: Text(currentTask.getDescription()),
                   onTap: () {
-                    _showInfoTaskDialog(tasklist.getTaskAt(index));
+                    _showInfoTaskDialog(currentTask);
                   },
                 );
               },

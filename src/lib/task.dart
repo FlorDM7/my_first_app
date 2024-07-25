@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /*
 A class representing tasks.
 */
@@ -28,7 +30,7 @@ class Task {
     this.description = description;
   }
 
-  void setDeadline(DateTime deadline){
+  void setDeadline(DateTime deadline) {
     this.deadline = deadline;
   }
 
@@ -36,19 +38,32 @@ class Task {
   GETTERS
   */
 
-  String getTitle(){
+  String getTitle() {
     return title; 
   }
 
-  String getDescription(){
+  String getDescription() {
     return description;
   }
 
-  DateTime getDeadline(){
+  DateTime getDeadline() {
     return deadline;
   }
 
-  String? getDeadlineToString(){
+  String? getDeadlineToString() {
     return getDeadline().day.toString();
   }
+
+  Color getDeadlineColor() {
+    if (getDeadline().isBefore(DateTime.now())) {
+      return Colors.red;  // when deadline is passed show red
+    } else if (getDeadline().isBefore(DateTime.now().add(const Duration(days: 1)))) {
+      return Colors.orange; // when one day remains for deadline
+    } else if (getDeadline().isBefore(DateTime.now().add(const Duration(days: 2)))) {
+      return Colors.yellow; // when two days remains for deadline
+    } else {
+      return Colors.white;
+    }
+  }
+
 }
