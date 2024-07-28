@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+
+part 'task.g.dart'; // Generated file for the adapter
 
 /*
 A class representing tasks.
 */
+@HiveType(typeId: 0) // Unique ID for each class
 class Task {
+  @HiveField(0) // Unique field index
   String title;
+  @HiveField(1)
   String description;
+  @HiveField(2)
   DateTime deadline = DateTime.now();
 
   /*

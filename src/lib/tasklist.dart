@@ -1,9 +1,14 @@
 import 'task.dart';
+import 'package:hive/hive.dart';
+
+part 'tasklist.g.dart'; // Generated file for the adapter
 
 /*
 A class representing a list of tasks.
 */
+@HiveType(typeId: 1)
 class Tasklist {
+  @HiveField(0)
   List<Task> tasks = [];
 
   // empty constructor

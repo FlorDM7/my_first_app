@@ -1,10 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hive_flutter/adapters.dart';
 import 'tasklist.dart';
 import 'task.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  // Ensure that the Flutter binding is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Hive and specify the path for storing the database
+  await Hive.initFlutter();
+
+  // Register the adapters
+  Hive.registerAdapter(TaskAdapter());
+  Hive.registerAdapter(TasklistAdapter());
+
+  await Hive.openBox<Tasklist>('tasklistBox');
+  await Hive.openBox<Tasklist>('archiveBox');
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -37,12 +53,8 @@ class _MyHomePageState extends State<MyHomePage> {
   Tasklist tasklist = Tasklist(); // create new tasklist object
   Tasklist archive = Tasklist();
   int _selectedIndex = 0; // keep track of the selected index
-
-  // manual list with the avaliable widgets
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text("To-Do List"),
-    Text("Archived Tasks")
-  ];
+  var tasklistBox = Hive.openBox<Tasklist>('tasklistBox');
+  var archiveBox = Hive.openBox<Tasklist>('archiveBox');
 
   // method to change to selected index and so to change to widget
   void _onItemTapped(int index) {
@@ -54,21 +66,21 @@ class _MyHomePageState extends State<MyHomePage> {
   // Build main task viewer
   Widget _buildTaskListView() {
     return tasklist.isEmpty()
-          ? const Center(child: Text('There are no tasks. Create one!'))
-          : ListView.builder(
-              itemCount: tasklist.length(),
-              itemBuilder: (context, index) {
-                Task currentTask = tasklist.getTaskAt(index);
-                return ListTile(
-                  tileColor: currentTask.getDeadlineColor(),
-                  title: Text(currentTask.getTitle()),
-                  subtitle: Text(currentTask.getDescription()),
-                  onTap: () {
-                    _showInfoTaskDialog(currentTask);
-                  },
-                );
-              },
-            );
+        ? const Center(child: Text('There are no tasks. Create one!'))
+        : ListView.builder(
+            itemCount: tasklist.length(),
+            itemBuilder: (context, index) {
+              Task currentTask = tasklist.getTaskAt(index);
+              return ListTile(
+                tileColor: currentTask.getDeadlineColor(),
+                title: Text(currentTask.getTitle()),
+                subtitle: Text(currentTask.getDescription()),
+                onTap: () {
+                  _showInfoTaskDialog(currentTask);
+                },
+              );
+            },
+          );
   }
 
   @override
@@ -78,15 +90,15 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: _selectedIndex == 0 
+      body: _selectedIndex == 0
           ? _buildTaskListView() // if index is zero build as normal
           : ArchivePage(archive: archive), // if index is one build the archive
       // Button to add new task (only show it on the main view)
-      floatingActionButton: _selectedIndex == 0 
+      floatingActionButton: _selectedIndex == 0
           ? FloatingActionButton(
-            onPressed: _showAddTaskDialog,
-            tooltip: 'Increment',
-            child: const Icon(Icons.add),
+              onPressed: _showAddTaskDialog,
+              tooltip: 'Increment',
+              child: const Icon(Icons.add),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -96,9 +108,7 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.task_alt),
             label: "Tasks",
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.archive),
-            label: "Archive"), 
+          BottomNavigationBarItem(icon: Icon(Icons.archive), label: "Archive"),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Theme.of(context).primaryColor,
@@ -195,7 +205,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   // press add, call addTask method
-                  _addTask(_newTaskTitle, _newTaskDescription, _deadlineYear, _deadlineMonth, _deadlineDay);
+                  _addTask(_newTaskTitle, _newTaskDescription, _deadlineYear,
+                      _deadlineMonth, _deadlineDay);
                 },
                 child: const Text("Add")),
           ],
@@ -206,14 +217,16 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // add a new task
   // by changing the state
-  void _addTask(String title, String description, int year, int month, int day) {
+  void _addTask(
+      String title, String description, int year, int month, int day) {
     setState(() {
-      tasklist.addTask(Task(title, description, DateTime.utc(year, month, day)));
-      tasklist.sortByDate();
+      tasklist
+          .addTask(Task(title, description, DateTime.utc(year, month, day)));
+      tasklist.sortByDate();;
     });
   }
 
-  // method that makes a pop up widget for an existing task, 
+  // method that makes a pop up widget for an existing task,
   // with the option to edit or complete/delete the task
   Future<void> _showInfoTaskDialog(Task currentTask) async {
     int day = currentTask.deadline.day;
@@ -292,7 +305,8 @@ class _MyHomePageState extends State<MyHomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text("Current description: ${currentTask.getDescription()}\nCurrent deadline: ${currentTask.deadline.day.toString()}/${currentTask.deadline.month.toString()}/${currentTask.deadline.year.toString()}"),
+                Text(
+                    "Current description: ${currentTask.getDescription()}\nCurrent deadline: ${currentTask.deadline.day.toString()}/${currentTask.deadline.month.toString()}/${currentTask.deadline.year.toString()}"),
                 TextField(
                   decoration: const InputDecoration(
                     border: UnderlineInputBorder(), // place to enter text
@@ -312,34 +326,43 @@ class _MyHomePageState extends State<MyHomePage> {
                   },
                 ),
                 TextField(
-                  decoration: const InputDecoration(label: Text("Enter a new year for the deadline (optional)")),
+                  decoration: const InputDecoration(
+                      label:
+                          Text("Enter a new year for the deadline (optional)")),
                   keyboardType: TextInputType.datetime,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
                   onChanged: (value) {
-                    _deadlineYear = int.parse(value); // change the local variable
-                  },  
+                    _deadlineYear =
+                        int.parse(value); // change the local variable
+                  },
                 ),
                 TextField(
-                  decoration: const InputDecoration(label: Text("Enter a new month for the deadline (optional)")),
+                  decoration: const InputDecoration(
+                      label: Text(
+                          "Enter a new month for the deadline (optional)")),
                   keyboardType: TextInputType.datetime,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
                   onChanged: (value) {
-                    _deadlineMonth = int.parse(value); // change the local variable
-                  },  
+                    _deadlineMonth =
+                        int.parse(value); // change the local variable
+                  },
                 ),
                 TextField(
-                  decoration: const InputDecoration(label: Text("Enter a new day for the deadline (optional)")),
+                  decoration: const InputDecoration(
+                      label:
+                          Text("Enter a new day for the deadline (optional)")),
                   keyboardType: TextInputType.datetime,
                   inputFormatters: <TextInputFormatter>[
                     FilteringTextInputFormatter.digitsOnly
                   ],
                   onChanged: (value) {
-                    _deadlineDay = int.parse(value); // change the local variable
-                  },  
+                    _deadlineDay =
+                        int.parse(value); // change the local variable
+                  },
                 )
               ],
             ),
@@ -353,7 +376,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
                 onPressed: () {
                   // when button is pressed return to home screen
-                  Navigator.of(context).pop(); 
+                  Navigator.of(context).pop();
                 },
                 child: const Text("Cancel")),
             // confirm button
@@ -364,7 +387,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 onPressed: () {
                   Navigator.of(context).pop();
                   // press confirm, call editTask method
-                  _editTask(currentTask, _newTaskTitle, _newTaskDescription, _deadlineYear, _deadlineMonth, _deadlineDay);
+                  _editTask(currentTask, _newTaskTitle, _newTaskDescription,
+                      _deadlineYear, _deadlineMonth, _deadlineDay);
                 },
                 child: const Text("Confirm")),
           ],
@@ -375,7 +399,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // edit an existing task
   // by changing the state
-  void _editTask(Task task, String title, String description, int year, int month, int day) {
+  void _editTask(Task task, String title, String description, int year,
+      int month, int day) {
     setState(() {
       task.setTitle(title);
       task.setDescription(description);
@@ -420,10 +445,10 @@ class ArchivePage extends StatelessWidget {
     int month = task.deadline.month;
     int year = task.deadline.year;
     return showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-         return AlertDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
             title: Text(task.getTitle()),
             content: Text(
                 "${task.getDescription()}\nDeadline: ${day.toString()}/${month.toString()}/${year.toString()}"),
